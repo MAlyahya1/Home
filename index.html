@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>🏠 Home</h1>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="chores">Chores</button>
+    <button class="tab-btn" data-tab="shopping">Shopping</button>
+    <button class="tab-btn" data-tab="bills">Bills</button>
+  </nav>
+</header>
+
+<main>
+  <section id="chores" class="tab-panel active">
+    <form id="chore-form" class="add-form">
+      <input type="text" id="chore-name" placeholder="New chore..." required>
+      <input type="text" id="chore-assignee" placeholder="Assignee (optional)">
+      <select id="chore-recurrence">
+        <option value="none">One-off</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <button type="submit">Add</button>
+    </form>
+    <ul id="chore-list" class="item-list"></ul>
+  </section>
+
+  <section id="shopping" class="tab-panel">
+    <form id="shopping-form" class="add-form">
+      <input type="text" id="shopping-name" placeholder="New item..." required>
+      <input type="text" id="shopping-category" placeholder="Category (optional)">
+      <button type="submit">Add</button>
+    </form>
+    <button id="clear-checked" class="secondary-btn">Clear checked items</button>
+    <ul id="shopping-list" class="item-list"></ul>
+  </section>
+
+  <section id="bills" class="tab-panel">
+    <form id="bill-form" class="add-form">
+      <input type="text" id="bill-name" placeholder="Bill name..." required>
+      <input type="date" id="bill-due" required>
+      <input type="number" id="bill-amount" placeholder="Amount (optional)" step="0.01" min="0">
+      <button type="submit">Add</button>
+    </form>
+    <ul id="bill-list" class="item-list"></ul>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
