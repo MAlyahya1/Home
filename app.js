@@ -4,8 +4,11 @@
   const defaultState = {
     chores: [],
     shopping: [],
+    kitchen: [],
     bills: [],
   };
+
+  const EXPIRY_SOON_DAYS = 3;
 
   function loadState() {
     try {
@@ -32,6 +35,14 @@
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function daysUntil(dateStr) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(dateStr);
+    due.setHours(0, 0, 0, 0);
+    return Math.round((due - today) / (1000 * 60 * 60 * 24));
   }
 
   // ---------- Tabs ----------
@@ -204,6 +215,111 @@
     });
   }
 
+  // ---------- Kitchen ----------
+  const kitchenForm = document.getElementById("kitchen-form");
+  const kitchenList = document.getElementById("kitchen-list");
+
+  kitchenForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("kitchen-name").value.trim();
+    const category = document.getElementById("kitchen-category").value.trim();
+    const expiry = document.getElementById("kitchen-expiry").value || null;
+    if (!name) return;
+    state.kitchen.push({
+      id: uid(),
+      name,
+      category,
+      expiry,
+      restockAdded: false,
+    });
+    saveState();
+    kitchenForm.reset();
+    renderKitchen();
+  });
+
+  function deleteKitchenItem(id) {
+    state.kitchen = state.kitchen.filter((i) => i.id !== id);
+    saveState();
+    renderKitchen();
+  }
+
+  function restockKitchenItem(id) {
+    const item = state.kitchen.find((i) => i.id === id);
+    if (!item || item.restockAdded) return;
+    state.shopping.push({
+      id: uid(),
+      name: item.name,
+      category: item.category || "Restock",
+      checked: false,
+    });
+    item.restockAdded = true;
+    saveState();
+    renderKitchen();
+    renderShopping();
+  }
+
+  function kitchenStatus(item) {
+    if (!item.expiry) return { level: "ok", days: null };
+    const days = daysUntil(item.expiry);
+    if (days < 0) return { level: "expired", days };
+    if (days <= EXPIRY_SOON_DAYS) return { level: "soon", days };
+    return { level: "ok", days };
+  }
+
+  function renderKitchen() {
+    kitchenList.innerHTML = "";
+    if (state.kitchen.length === 0) {
+      kitchenList.innerHTML = '<li class="empty-state">No kitchen items tracked yet.</li>';
+      return;
+    }
+    const sorted = [...state.kitchen].sort((a, b) => {
+      if (!a.expiry && !b.expiry) return 0;
+      if (!a.expiry) return 1;
+      if (!b.expiry) return -1;
+      return new Date(a.expiry) - new Date(b.expiry);
+    });
+    for (const item of sorted) {
+      const { level, days } = kitchenStatus(item);
+      const li = document.createElement("li");
+      li.className = "item-row" + (level === "expired" ? " overdue" : "");
+      let expiryText = "no expiry";
+      if (item.expiry) {
+        if (days < 0) expiryText = `expired ${Math.abs(days)}d ago`;
+        else if (days === 0) expiryText = "expires today";
+        else expiryText = `expires in ${days}d`;
+      }
+      const badge =
+        level === "expired"
+          ? '<span class="badge expired">Expired</span>'
+          : level === "soon"
+          ? '<span class="badge soon">Restock soon</span>'
+          : "";
+      const metaParts = [expiryText];
+      if (item.category) metaParts.unshift(escapeHtml(item.category));
+      li.innerHTML = `
+        <div class="item-main">
+          <div class="item-title">${escapeHtml(item.name)}${badge}</div>
+          <div class="item-meta${level === "expired" ? " overdue-text" : ""}">${metaParts.join(" · ")}</div>
+        </div>
+        ${
+          level !== "ok"
+            ? `<button class="restock-btn" data-id="${item.id}" ${item.restockAdded ? "disabled" : ""}>${
+                item.restockAdded ? "Added ✓" : "Add to list"
+              }</button>`
+            : ""
+        }
+        <button class="delete-btn" data-id="${item.id}" title="Delete">×</button>
+      `;
+      kitchenList.appendChild(li);
+    }
+    kitchenList.querySelectorAll(".restock-btn").forEach((btn) => {
+      btn.addEventListener("click", () => restockKitchenItem(btn.dataset.id));
+    });
+    kitchenList.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", () => deleteKitchenItem(btn.dataset.id));
+    });
+  }
+
   // ---------- Bills ----------
   const billForm = document.getElementById("bill-form");
   const billList = document.getElementById("bill-list");
@@ -238,14 +354,6 @@
     state.bills = state.bills.filter((b) => b.id !== id);
     saveState();
     renderBills();
-  }
-
-  function daysUntil(dateStr) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const due = new Date(dateStr);
-    due.setHours(0, 0, 0, 0);
-    return Math.round((due - today) / (1000 * 60 * 60 * 24));
   }
 
   function renderBills() {
@@ -286,5 +394,6 @@
 
   renderChores();
   renderShopping();
+  renderKitchen();
   renderBills();
 })();

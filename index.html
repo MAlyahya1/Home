@@ -2,9 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Home</title>
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#2f7d5f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Home">
 </head>
 <body>
 <header class="app-header">
@@ -12,6 +19,7 @@
   <nav class="tabs">
     <button class="tab-btn active" data-tab="chores">Chores</button>
     <button class="tab-btn" data-tab="shopping">Shopping</button>
+    <button class="tab-btn" data-tab="kitchen">Kitchen</button>
     <button class="tab-btn" data-tab="bills">Bills</button>
   </nav>
 </header>
@@ -40,6 +48,17 @@
     </form>
     <button id="clear-checked" class="secondary-btn">Clear checked items</button>
     <ul id="shopping-list" class="item-list"></ul>
+  </section>
+
+  <section id="kitchen" class="tab-panel">
+    <form id="kitchen-form" class="add-form">
+      <input type="text" id="kitchen-name" placeholder="Item name..." required>
+      <input type="text" id="kitchen-category" placeholder="Category (optional)">
+      <input type="date" id="kitchen-expiry">
+      <button type="submit">Add</button>
+    </form>
+    <p class="hint">Leave expiry blank for items that don't spoil (e.g. canned goods). Items expiring within 3 days are flagged to restock.</p>
+    <ul id="kitchen-list" class="item-list"></ul>
   </section>
 
   <section id="bills" class="tab-panel">
