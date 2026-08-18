@@ -21,11 +21,37 @@
     }
   }
 
+  let pushRemoteState = () => {};
+
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    pushRemoteState(state);
   }
 
   const state = loadState();
+
+  const syncStatusEl = document.getElementById("sync-status");
+  function setSyncStatus(status) {
+    if (!syncStatusEl) return;
+    syncStatusEl.textContent = status === "synced" ? "● Synced" : "● Offline";
+    syncStatusEl.className = "sync-status " + status;
+  }
+
+  // Sync is loaded dynamically so a blocked/unreachable Firebase CDN never
+  // prevents the rest of the app (which works fine offline) from loading.
+  import("./firebase-sync.js")
+    .then(({ subscribeToRemoteState, pushState }) => {
+      pushRemoteState = pushState;
+      subscribeToRemoteState((remoteState) => {
+        Object.assign(state, structuredClone(defaultState), remoteState);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderChores();
+        renderShopping();
+        renderKitchen();
+        renderBills();
+      }, setSyncStatus);
+    })
+    .catch(() => setSyncStatus("offline"));
 
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
